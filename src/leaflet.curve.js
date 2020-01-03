@@ -9,21 +9,32 @@
 L.Curve = L.Path.extend({
 	options: {
 	},
-	
+
 	initialize: function(path, options){
 		L.setOptions(this, options);
 		this._setPath(path);
 	},
-	
+
+	// Based on L.POLYLINE (https://github.com/Leaflet/Leaflet/blob/6c5eece356ed9c029202ae001e82666e1dd093c3/src/layer/vector/Polyline.js), needed by AntPath
+	// Modified to call setPath
+	setLatLngs: function(latlngs) {
+		this.setPath(latlngs);
+		return this.redraw();
+	},
+
+	_updateBounds: function() {
+		//Empty function to satisfy L.Path.setStyle
+	},
+
 	getPath: function(){
 		return this._coords;
 	},
-	
+
 	setPath: function(path){
 		this._setPath(path);
 		return this.redraw();
 	},
-	
+
 	getBounds: function() {
 		return this._bounds;
 	},
@@ -32,7 +43,7 @@ L.Curve = L.Path.extend({
 		this._coords = path;
 		this._bounds = this._computeBounds();
 	},
-	
+
 	_computeBounds: function(){
 		var bound = new L.LatLngBounds();
 		var lastPoint;
@@ -113,17 +124,17 @@ L.Curve = L.Path.extend({
 		}
 		return bound;
 	},
-	
+
 	getCenter: function () {
 		return this._bounds.getCenter();
 	},
-	
+
 	_update: function(){
 		if (!this._map) { return; }
-		
+
 		this._updatePath();
 	},
-	
+
 	_updatePath: function() {
 		if(this._usingCanvas){
 			this._updateCurveCanvas();
@@ -194,7 +205,7 @@ L.Curve = L.Path.extend({
 
 		this._latLngToPointFn = this._usingCanvas ? map.latLngToContainerPoint : map.latLngToLayerPoint;
 		if(this._usingCanvas){
-			this._pathSvgElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');			
+			this._pathSvgElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 		}
 	},
 
@@ -203,7 +214,7 @@ L.Curve = L.Path.extend({
 			// determine if dash array is set by user
 			this._canvasSetDashArray = !this.options.dashArray;
 		}
-		
+
 		L.Path.prototype.onAdd.call(this, map); // calls _update()
 
 		if(this._usingCanvas){
@@ -239,7 +250,7 @@ L.Curve = L.Path.extend({
 		}else{
 			if(this.options.animate && this._path.animate){
 				var length = this._svgSetDashArray();
-				
+
 				this._path.animate([
 					{strokeDashoffset: length},
 					{strokeDashoffset: 0}
@@ -262,7 +273,7 @@ L.Curve = L.Path.extend({
 	_updateCurveSvg: function(){
 		this._renderer._setPath(this, this._curvePointsToPath(this._points));
 
-		if(this.options.animate){			
+		if(this.options.animate){
 			this._svgSetDashArray();
 		}
 	},
@@ -270,7 +281,7 @@ L.Curve = L.Path.extend({
 	_svgSetDashArray: function(){
 		var path = this._path;
 		var length = path.getTotalLength();
-		
+
 		if(!this.options.dashArray){
 			path.style.strokeDasharray = length + ' ' + length;
 		}
@@ -321,7 +332,7 @@ L.Curve = L.Path.extend({
 
 		var pathString = this._curvePointsToPath(this._points);
 		this._pathSvgElement.setAttribute('d', pathString);
-		
+
 		if(this.options.animate && typeof(TWEEN) === 'object' && this._canvasSetDashArray){
 			this._pathLength = this._pathSvgElement.getTotalLength();
 			this.options.dashArray = this._pathLength + '';
@@ -334,7 +345,7 @@ L.Curve = L.Path.extend({
 			this._resetCanvas();
 		}
 
-		
+
 	},
 
 	_animationCanvasElement: null,
@@ -365,10 +376,10 @@ L.Curve = L.Path.extend({
 	_clearCanvas: function() {
 		this._animationCanvasElement.getContext('2d').clearRect(0, 0, this._animationCanvasElement.width, this._animationCanvasElement.height);
 	},
-  
+
 	_animateCanvas: function(time){
 		TWEEN.update(time);
-	
+
 		var ctx = this._animationCanvasElement.getContext('2d');
 		ctx.clearRect(0, 0, this._animationCanvasElement.width, this._animationCanvasElement.height);
 		ctx.lineDashOffset = this._tweenedObject.offset;
