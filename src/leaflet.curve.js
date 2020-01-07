@@ -15,11 +15,9 @@ L.Curve = L.Path.extend({
 		this._setPath(path);
 	},
 
-	// Based on L.POLYLINE (https://github.com/Leaflet/Leaflet/blob/6c5eece356ed9c029202ae001e82666e1dd093c3/src/layer/vector/Polyline.js), needed by AntPath
-	// Modified to call setPath
+	// Based on L.POLYLINE having this function (https://github.com/Leaflet/Leaflet/blob/6c5eece356ed9c029202ae001e82666e1dd093c3/src/layer/vector/Polyline.js), needed by AntPath
 	setLatLngs: function(latlngs) {
-		this.setPath(latlngs);
-		return this.redraw();
+		return this.setPath(latlngs);
 	},
 
 	_updateBounds: function() {
